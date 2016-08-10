@@ -43,14 +43,70 @@ class NArray < Array
 		end
 	end
 
-	def at(position, *positions)
-		raise "#{positions.length + 1} positions instead of #{dimensions}" unless positions.length + 1 == dimensions
-		
+	def at(*positions)
+		raise "#{positions.length + 1} positions instead of #{dimensions}" unless positions.length == dimensions
+		self[*positions]
 	end
 
 	def length d = 0
 		raise "Invalid dimension" if d < 0 or d > dimensions - 1
 		d == 0 ? super() : _at(0).length(d - 1)
+	end
+
+	def each &blck 
+		if dimensions > 1 
+			for i in 0...length
+				_at(i).each(&blck)
+			end
+		else
+			super
+		end
+	end
+
+	def each_with_index index = [], &blck
+		if dimensions > 1
+			for i in 0...length
+				_at(i).each_with_index [*index, i], &blck
+			end
+		else
+			for i in 0...length
+				yield [*index, i], at(i)
+			end
+		end
+	end
+
+	def size 
+		flatten.length
+	end
+
+	def flatten
+		inject([]) { |ary, e| ary << e }	
+	end
+
+	def collect &blck
+		if dimensions > 1 
+			ret = []
+			for i in 0...length
+				ret << _at(i).collect(&blck)
+			end
+			ret
+		else
+			super
+		end
+	end
+
+	def push 
+	end
+
+	def insert
+
+	end
+
+	def unshift
+	end
+
+	def << ary
+
 	end
 
 	private
@@ -64,16 +120,24 @@ class NArray < Array
 
 end
 
-n = NArray.new([3, 2, 4]) { [*(1..100)].sample }
+puts "\n# Constructors"
 n2 = NArray.new(2, 42)
-puts "#{n2[0, 0] = 42}"
-puts "#{n2}"
+n = NArray.new([3, 2, 4]) { [*(1..100)].sample }
+puts n.inspect, n2.inspect
 
+puts "\n# Accessors"
 n[0, 1, 3] = "a"
 n[0,0,0] = 0
 puts n.inspect
+
+puts "\n# Miscellaneous"
 for i in 0...n.dimensions
 	puts "dimension #{i}.length == #{n.length(i)}"
 end
+puts "Size: #{n.size}"
 
-n.each do |e| puts "Hola #{e}!" end
+
+puts "\n# Enumeration"
+n.each_with_index do |a, e| puts "Hola (#{a}) #{e}!" end
+puts n.collect { |e| e % 2 }
+
