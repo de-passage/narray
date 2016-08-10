@@ -109,14 +109,43 @@ class NArray < Array
 		collect(&b)
 	end
 
-	def push 
+	def push d, value
+		correct_dimension? d
+		if d == 0 
+			if dimensions == 1
+				super(value)
+			else
+				super(NArray.new(lengths.drop(1), value))
+			end
+		else 
+			_each { |e| e.push(d - 1, value) }
+		end
 	end
 
 	def insert
-
+		correct_dimension? d
+		if d == 0 
+			if dimensions == 1
+				super(value)
+			else
+				super(NArray.new(lengths.drop(1), value))
+			end
+		else 
+			_each { |e| e.insert(d - 1, value) }
+		end
 	end
 
-	def unshift
+	def unshift d, value
+		correct_dimension? d
+		if d == 0 
+			if dimensions == 1
+				super(value)
+			else
+				super(NArray.new(lengths.drop(1), value))
+			end
+		else 
+			_each { |e| e.unshift(d - 1, value) }
+		end
 	end
 
 	def << ary
@@ -128,8 +157,18 @@ class NArray < Array
 		dimension.is_a? Integer and dimension >= 0
 	end
 
+	def correct_dimension? d
+		raise "Invalid dimension (nb #{d} out of #{dimensions}, starts at 0)" if d >= dimensions or !NArray.valid_dimension?(d)
+	end
+
 	def _at i
 		Array.instance_method(:[]).bind(self).call i
+	end
+
+	def _each &blck
+		for i in 0...length
+			yield _at(i)
+		end
 	end
 
 end
@@ -157,3 +196,11 @@ puts "\n# Enumeration"
 n.each_with_index do |a, e| puts "Hola (#{a}) #{e}!" end
 puts n.map { |e| e % 2 }.inspect
 
+n.push(2, "test")
+puts n.inspect
+
+n.push(0, "foo")
+puts n.inspect
+
+n.unshift(1, nil)
+puts n.inspect
