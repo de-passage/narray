@@ -52,6 +52,14 @@ class NArray < Array
 		raise "Invalid dimension" if d < 0 or d > dimensions - 1
 		d == 0 ? super() : _at(0).length(d - 1)
 	end
+	
+	def lengths
+		if dimensions == 1
+			[length]
+		else
+			[length, *_at(0).lengths]
+		end
+	end
 
 	def each &blck 
 		if dimensions > 1 
@@ -84,15 +92,21 @@ class NArray < Array
 	end
 
 	def collect &blck
+		ret = []
 		if dimensions > 1 
-			ret = []
 			for i in 0...length
 				ret << _at(i).collect(&blck)
 			end
-			ret
 		else
-			super
+			for i in 0...length
+				ret << (yield at(i))
+			end
 		end
+		ret
+	end
+
+	def map &b
+		collect(&b)
 	end
 
 	def push 
@@ -132,12 +146,14 @@ puts n.inspect
 
 puts "\n# Miscellaneous"
 for i in 0...n.dimensions
-	puts "dimension #{i}.length == #{n.length(i)}"
+	p "dimension #{i}.length == #{n.length(i)}"
 end
+puts
 puts "Size: #{n.size}"
+puts "#{n.lengths}"
 
 
 puts "\n# Enumeration"
 n.each_with_index do |a, e| puts "Hola (#{a}) #{e}!" end
-puts n.collect { |e| e % 2 }
+puts n.map { |e| e % 2 }.inspect
 
