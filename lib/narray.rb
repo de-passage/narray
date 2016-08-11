@@ -78,7 +78,7 @@ class NArray < Array
 			end
 		else
 			for i in 0...length
-				yield [*index, i], at(i)
+				yield at(i), [*index, i]
 			end
 		end
 	end
@@ -171,4 +171,43 @@ class NArray < Array
 		end
 	end
 
+
+	public 
+	# Returns a ndimensional array fitting the description as long as it is well formed
+	#
+	# A NArray is created with as many dimensions as it can deduce.
+	# If a dimension contains something else than arrays or if the length of the array is different from the other,
+	# the elements at this level are treated as elements of the cell rather than dimensions of the NArray
+	def self.[] *args 
+		# Assert until what point a set of value can be considered a dimension
+		# 	Must be a set of arrays of the same length
+		# 	The difficulty lies in the fact that recursion branches and each element is examined independentely
+		# Recursively create each Narray and set dimension
+
+		# Flawed
+		valid = !args.empty?
+		length = nil 
+		args.each do |a|
+			unless a.is_a? Array and (length ||= a.length) == a.length 
+				valid = false 
+				break
+			end
+		end
+		r = nil
+		if valid
+			r = super(*args.map { |a| NArray[*a] })
+			r.instance_variable_set(:@dimensions, r[0].dimensions + 1)
+		else 
+			r = super(*args)
+			r.instance_variable_set(:@dimensions, 1)
+		end
+		return r
+	end
+
+	def self.construct_recursively values, depth = 0, ref_to_lengths = []
+		ref_to_lengths << nil 
+		valid = values.empty?
+		if valid then raise	
+		end
+	end
 end
