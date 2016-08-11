@@ -3,30 +3,19 @@ require "minitest/spec"
 require_relative "../lib/narray"
 
 class TestNArray < MiniTest::Test
-	def test_narray_should_be_created_coherent 
-		valid = [ NArray[], NArray[1,2,3], NArray[[1,2], [3,4]], NArray[[[1,2], [1,2]], [[1, nil], [1, 2]]] ]
-		valid.each_with_index do |a, i| 
-			assert a.is_a? NArray 
-			if i == 0 
-				assert a.dimensions == 1, "nb.#{i} > #{a}"
-			else 
-				assert a.dimensions == i
-			end
-		end
-	end
+#	def test_a_narray_can_be_created_from_a_list_of_dimensions
+#		assert_equal NArray.new([2,2,2], nil), [[[nil, nil], [nil, nil]], [[nil, nil],[nil, nil]]]
+#	end
+#
+#	def test_a_narray_can_be_created_from_a_template
+#		assert_equal NArray.new( [[1,2,3], [1,2,3], [1,2,3]] ), [[1,2,3], [1,2,3], [1,2,3]]
+#	end
 
-	def test_narray_should_equal_itself_only
-		array_2d = NArray[[1,2,3],
-						  [4,5,6]]
-		dif_array_2d = NArray[[0,2,3],
-							  [4,5,6]]
-		array_3d = NArray[[[0,1], [2,3]],
-					 	  [[4,5], [6,7]]]
-		array_2d_d = array_2d.dup 
-		assert_equal(array_2d, array_2d_d)
-		assert_equal(array_2d, array_2d)
-		refute_equal(array_2d, dif_array_2d)
-		refute_equal(array_2d, array_3d)
+	def test_class_calculate_dimensions_correctly
+		assert_equal NArray::calculate_dimensions(Array.new(3) { Array.new (3) }), [3,3]
+		assert_equal NArray::calculate_dimensions([]), [0]
+		assert_equal NArray::calculate_dimensions([[], 43, [1, 2], nil]), [4]
+		assert_equal NArray::calculate_dimensions("test"), []
 	end
 
 end
