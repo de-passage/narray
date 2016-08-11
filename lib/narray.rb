@@ -21,7 +21,6 @@ class NArray < Array
 
 		# Return an array of lengths for a n-array
 		def calculate_dimensions array
-
 			_count(array).take_while { |e| e >= 0 }
 		end
 
