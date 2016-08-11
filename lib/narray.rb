@@ -172,35 +172,3 @@ class NArray < Array
 	end
 
 end
-
-puts "\n# Constructors"
-n2 = NArray.new(2, 42)
-n = NArray.new([3, 2, 4]) { [*(1..100)].sample }
-puts n.inspect, n2.inspect
-
-puts "\n# Accessors"
-n[0, 1, 3] = "a"
-n[0,0,0] = 0
-puts n.inspect
-
-puts "\n# Miscellaneous"
-for i in 0...n.dimensions
-	p "dimension #{i}.length == #{n.length(i)}"
-end
-puts
-puts "Size: #{n.size}"
-puts "#{n.lengths}"
-
-
-puts "\n# Enumeration"
-n.each_with_index do |a, e| puts "Hola (#{a}) #{e}!" end
-puts n.map { |e| e % 2 }.inspect
-
-n.push(2, "test")
-puts n.inspect
-
-n.push(0, "foo")
-puts n.inspect
-
-n.unshift(1, nil)
-puts n.inspect
