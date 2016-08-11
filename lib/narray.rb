@@ -10,7 +10,10 @@ class NArray < Array
 			else
 				if block_given?
 					super(dimensions[0], &blck)
-				else
+				elsif values.is_a? Array and values.length == dimensions[0] 
+					super(values)
+				else 
+					puts "Called"
 					super(dimensions[0], values)
 				end
 			end
@@ -21,6 +24,8 @@ class NArray < Array
 			else 
 				if block_given?
 					super(0, &blck)
+				elsif values.is_a? Array
+					super(values)
 				else
 					super(0, values)
 				end
@@ -179,35 +184,34 @@ class NArray < Array
 	# If a dimension contains something else than arrays or if the length of the array is different from the other,
 	# the elements at this level are treated as elements of the cell rather than dimensions of the NArray
 	def self.[] *args 
-		# Assert until what point a set of value can be considered a dimension
-		# 	Must be a set of arrays of the same length
-		# 	The difficulty lies in the fact that recursion branches and each element is examined independentely
-		# Recursively create each Narray and set dimension
-
-		# Flawed
-		valid = !args.empty?
-		length = nil 
-		args.each do |a|
-			unless a.is_a? Array and (length ||= a.length) == a.length 
-				valid = false 
-				break
-			end
+	#works but doesn't assign dimensions value correctly	
+		dims = determine_dimensions_recursively(args).take_while { |e| e > 0 } #Gets an array with every dimensions found and trim it to the smallest possible so that no dimension has a null length
+		if dims.length <= 1
+			super(*args)
+		else
+			super(*create_array_recursively(args, dims.length))
 		end
-		r = nil
-		if valid
-			r = super(*args.map { |a| NArray[*a] })
-			r.instance_variable_set(:@dimensions, r[0].dimensions + 1)
-		else 
-			r = super(*args)
-			r.instance_variable_set(:@dimensions, 1)
-		end
-		return r
 	end
 
-	def self.construct_recursively values, depth = 0, ref_to_lengths = []
-		ref_to_lengths << nil 
-		valid = values.empty?
-		if valid then raise	
+	def self.determine_dimensions_recursively values, depth = 0, lengths = []
+		lengths << nil if lengths.length <= depth
+		values.each do |a| 
+			unless a.is_a? Array and a.length != 0 and (lengths[depth] ||= a.length) == a.length
+				lengths[depth] = 0 
+				break
+			else
+				determine_dimensions_recursively a, depth + 1, lengths
+			end
+		end
+		lengths
+	end
+
+	def self.create_array_recursively values, dimensions
+		r = nil
+		if dimensions > 1
+			r = values.map { |e| create_array_recursively(e, dimensions - 1) } 
+		else
+			r = NArray.new 1, values
 		end
 	end
 end
