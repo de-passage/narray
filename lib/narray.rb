@@ -2,10 +2,18 @@
 
 class NArray < Array
 	attr_reader :dimensions
-	def initialize dimensions = nil, values = nil, &blck
+	def initialize dimensions = nil, *values, &blck
+		raise ParameterError, "Expected 1..2 arguments, got #{vales.length + 1}" if values.length > 1	
+		if values.length == 0
+			values = nil
+		else 
+			values = values[0]
+		end
+
 		# In case the only parameter is a NArray, duplicate it
 		if dimensions.is_a? NArray and values == nil
 			self.replace dimensions.dup
+
 		# In case the parameter is an array, multiple possibilities
 		elsif dimensions.is_a? Array
 			# 1) The array decribes dimensions and provide a default value to fill in the blanks
@@ -13,8 +21,10 @@ class NArray < Array
 				# then we build the n-array recursively and fill the values with what has been provided
 				@dimensions = dimensions.length
 				@dimensions == 1 ?
-					super(dimensions[0], values, &blck) :
-					super([NArray.new(dimensions.drop(1), values, &blck)])
+					# A little detour to avoid warnings on nil values
+					values.nil? ? super(dimensions[0], &blck) : super(dimensions[0], values) :
+					super( [*0...dimensions[0]].map { NArray.new(dimensions.drop(1), values, &blck) } )
+
 			# 2) the array does not provide a default value
 			elsif values.nil? and !block_given?
 				# then we create a NArray fitting the litteral given
@@ -22,11 +32,14 @@ class NArray < Array
 				@dimensions == 1 ?
 					super(dimensions) : # giving a block here has no effect with mri and the doc doesn't say anything
 					super(dimensions.map { |e| NArray.new(e) })
+
 			# 3) the array is not a valid description but a default value is given, i.e. user mistake. Scold him!
 			else
-				raise RuntimeError "#{dimensions} is not a valid description: 
+				raise RuntimeError, "#{dimensions} is not a valid description: 
 				An array of striclty positive Integers is expected"
 			end
+
+		# In case the dimension is valid
 		elsif NArray.is_valid_dimension? dimensions
 			@dimensions = dimensions
 			if dimensions == 1
@@ -34,19 +47,16 @@ class NArray < Array
 			else 
 				super([NArray.new(dimensions - 1, values, &blck)])
 			end
-		elsif NArray.is_valid_description?
 
+		# Empty constructor
 		elsif dimensions.nil? and values.nil?
 			super(&blck)
+
+		# Bad user, bad
 		else
 			raise RuntimeError \
 				"Invalid dimension (expecting an Integer or array of Integer all strictly positives, got #{dimensions}"
 		end
-	end
-
-	# Returns the number of dimensions of the n-array
-	def dimensions
-		NArray.count_dimensions(self)
 	end
 
 	# Returns an array of the lengths of each dimension
@@ -79,6 +89,11 @@ class NArray < Array
 		# Returns true if the argument is an Array of values satisfying is_valid_dimension?, false otherwise
 		def is_valid_description? dimensions
 			dimensions.is_a? Array and dimensions.all? { |e| is_valid_dimension? e }
+		end
+
+		# Create a n-array fitting the given description
+		def [] *description
+			NArray.new(description)
 		end
 
 		private
