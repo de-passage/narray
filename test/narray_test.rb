@@ -3,6 +3,13 @@ require "minitest/spec"
 require_relative "../lib/narray"
 
 class TestNArray < MiniTest::Test
+	def setup
+		@d3 = NArray.new([[[1,"a"], [[], 5]], [["test", {}], [nil, [1,2]]]])
+		@d3b = NArray[[[1,"a"], [[], 5]], [["test", {}], [nil, [1,2]]]]
+		@dn = NArray.new([])
+		@d2 = NArray.new([2,2], 2)
+	end
+	
 	def test_a_narray_can_be_created_from_a_list_of_dimensions_and_a_default_value
 		assert_equal [[nil]], NArray.new([1,1], nil)
 		assert_equal [[1]], NArray.new([1,1], 1)
@@ -10,12 +17,6 @@ class TestNArray < MiniTest::Test
 		assert_equal [[0, 0, 0], [0, 0, 0]], NArray.new([2,3]) {0}
 		assert_equal [[[nil, nil], [nil, nil]], [[nil, nil],[nil, nil]]], NArray.new([2,2,2]) { nil }
 		assert_equal [[[nil, nil], [nil, nil]], [[nil, nil],[nil, nil]]], NArray.new([2,2,2], nil)
-	end
-	
-	def setup
-		@d3 = NArray.new([[[1,"a"], [[], 5]], [["test", []], [nil, [1,2]]]])
-		@d3b = NArray[[[1,"a"], [[], 5]], [["test", []], [nil, [1,2]]]]
-		@dn = NArray.new([])
 	end
 	
 	def test_a_narray_can_be_created_from_a_dimension
@@ -29,7 +30,7 @@ class TestNArray < MiniTest::Test
 		assert_equal [1,2,3], NArray.new([1,2,3])
 		assert_equal [], @dn
 		assert_equal [[1,2], [1,2]], NArray.new([[1,2], [1,2]])
-		assert_equal [[[1,"a"], [[], 5]], [["test", []], [nil, [1,2]]]], @d3
+		assert_equal [[[1,"a"], [[], 5]], [["test", Hash.new], [nil, [1,2]]]], @d3
 		assert_equal NArray.new( [[1,2,3], [1,2,3], [1,2,3]] ), [[1,2,3], [1,2,3], [1,2,3]]
 	end
 
@@ -69,5 +70,37 @@ class TestNArray < MiniTest::Test
 				Array.new(3) { 
 					Array.new(2) { [*(1..10)].sample }}})
 	end
+
+	def test_square_parenthesis_return_expected_result
+		assert_equal 1, @d3[0,0,0]
+		assert_equal "a", @d3[0,0,1]
+		assert_equal [], @d3[0,1,0]
+		assert_equal 5, @d3[0,1,1]
+		assert_equal "test", @d3[1,0,0]
+		assert_equal Hash.new, @d3[1,0,1]
+		assert_equal nil, @d3[1,1,0]
+		assert_equal [1,2], @d3[1,1,1]
+	end
+
+	def test_chaining_square_parenthesis_return_expected_result
+		assert_equal 1, @d3[0][0][0]
+		assert_equal "a", @d3[0][0][1]
+		assert_equal [], @d3[0][1][0]
+		assert_equal 5, @d3[0][1][1]
+		assert_equal "test", @d3[1][0][0]
+		assert_equal Hash.new, @d3[1][0][1]
+		assert_equal nil, @d3[1][1][0]
+		assert_equal [1,2], @d3[1][1][1]
+	end
+
+	def test_two_ways_of_assigning_values
+		@d2[0][0] = nil
+		@d2[0, 1] = "q"
+		assert_equal nil, @d2[0][0]
+		assert_equal "q", @d2[0][1]
+		assert_equal 2, @d2[1,0]
+		assert_equal 2, @d2[1,1]
+	end
+
 end
 

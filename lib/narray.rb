@@ -60,6 +60,21 @@ class NArray < Array
 		NArray.calculate_dimensions(self)
 	end
 
+	# Fetch the value at the position of the arguments
+	#
+	# In case the argument contains nil values, returns a NArray of the elements 
+	# satisfying the coordinates given by the arguments (to-do)
+	def [] *pos
+		raise "1..#{dimensions} arguments expected, given #{pos.length}" if pos.length > dimensions or pos.length == 0
+		pos.length == 1 ? super(*pos) : super(pos[0])[*pos.drop(1)]
+	end
+
+	# Sets the value at the position of the arguments
+	def []= *pos, v
+		raise "#{dimensions} arguments expected, given #{pos.length}" if pos.length != dimensions
+		pos.length == 1 ? super(*pos, v) : self[pos[0]][*pos.drop(1)] = v
+	end
+
 	class << self
 		# Returns the number of dimensions that can be generated from the argument while keeping the array well-formed
 		#
@@ -88,7 +103,7 @@ class NArray < Array
 		end
 
 		# Create a n-array fitting the given description
-		def [] *description
+		def[] *description
 			NArray.new(description)
 		end
 
