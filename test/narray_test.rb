@@ -4,10 +4,12 @@ require_relative "../lib/narray"
 
 class TestNArray < MiniTest::Test
 	def test_a_narray_can_be_created_from_a_list_of_dimensions_and_a_default_value
+		assert_equal [[nil]], NArray.new([1,1], nil)
 		assert_equal [[1]], NArray.new([1,1], 1)
 		assert_equal [true, true], NArray.new([2], true)
 		assert_equal [[0, 0, 0], [0, 0, 0]], NArray.new([2,3]) {0}
 		assert_equal [[[nil, nil], [nil, nil]], [[nil, nil],[nil, nil]]], NArray.new([2,2,2]) { nil }
+		assert_equal [[[nil, nil], [nil, nil]], [[nil, nil],[nil, nil]]], NArray.new([2,2,2], nil)
 	end
 	
 	def setup

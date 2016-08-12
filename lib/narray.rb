@@ -3,30 +3,26 @@
 class NArray < Array
 	attr_reader :dimensions
 	def initialize dimensions = nil, *values, &blck
-		raise ParameterError, "Expected 1..2 arguments, got #{vales.length + 1}" if values.length > 1	
-		if values.length == 0
-			values = nil
-		else 
-			values = values[0]
-		end
+		# Make a difference between no arguments and nil
+		values = NArray::_extract values
 
 		# In case the only parameter is a NArray, duplicate it
-		if dimensions.is_a? NArray and values == nil
+		if dimensions.is_a? NArray and  !NArray::_arg? values
 			self.replace dimensions.dup
 
 		# In case the parameter is an array, multiple possibilities
 		elsif dimensions.is_a? Array
 			# 1) The array decribes dimensions and provide a default value to fill in the blanks
-			if NArray.is_valid_description? dimensions and (!values.nil? or block_given?)
+			if NArray.is_valid_description? dimensions and (NArray::_arg? values or block_given?)
 				# then we build the n-array recursively and fill the values with what has been provided
 				@dimensions = dimensions.length
 				@dimensions == 1 ?
 					# A little detour to avoid warnings on nil values
-					values.nil? ? super(dimensions[0], &blck) : super(dimensions[0], values) :
+					!NArray::_arg?(values) ? super(dimensions[0], &blck) : super(dimensions[0], values) :
 					super( [*0...dimensions[0]].map { NArray.new(dimensions.drop(1), values, &blck) } )
 
 			# 2) the array does not provide a default value
-			elsif values.nil? and !block_given?
+			elsif !NArray::_arg? values and !block_given?
 				# then we create a NArray fitting the litteral given
 				@dimensions = NArray.count_dimensions dimensions #inefficient but GTD
 				@dimensions == 1 ?
@@ -49,7 +45,7 @@ class NArray < Array
 			end
 
 		# Empty constructor
-		elsif dimensions.nil? and values.nil?
+		elsif dimensions.nil? and !NArray::_arg? values
 			super(&blck)
 
 		# Bad user, bad
@@ -122,5 +118,17 @@ class NArray < Array
 				n
 			end
 
+		public
+			def _extract args
+				raise ParameterError, "Expected 1..2 arguments, got #{args.length + 1}" if args.length > 1	
+				args.length == 1 ? args[0] : NArray::EmptyArgument.new
+			end
+			
+			def _arg? arg
+				!arg.is_a? NArray::EmptyArgument
+			end
+	end
+	private
+	class EmptyArgument
 	end
 end
