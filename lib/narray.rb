@@ -57,8 +57,16 @@ class NArray < Array
 
 	# Returns an array of the lengths of each dimension
 	def lengths
-		NArray.calculate_dimensions(self)
+		#NArray.calculate_dimensions(self) # doesn't work for some weird reason
+		dimensions == 1 ? [length] : [length, *self[0].lengths]
 	end
+
+	def length d = 0
+		raise "Expecting positive Integer < #{dimensions}, got #{d}" unless d < dimensions
+		d == 0 ? super() : self[0].length(d - 1)
+	end
+
+
 
 	# Fetch the value at the position of the arguments
 	#
@@ -73,6 +81,11 @@ class NArray < Array
 	def []= *pos, v
 		raise "#{dimensions} arguments expected, given #{pos.length}" if pos.length != dimensions
 		pos.length == 1 ? super(*pos, v) : self[pos[0]][*pos.drop(1)] = v
+	end
+
+	# Returns the total number of elements in the n-array
+	def size
+		lengths.reduce(&:+)
 	end
 
 	def each &blck
@@ -101,15 +114,19 @@ class NArray < Array
 	class << self
 		# Returns the number of dimensions that can be generated from the argument while keeping the array well-formed
 		#
-		# Checks the maximum level of nesting so that any n-vector {v1, v2...vn} with 0 <= vm < length(m) correctly refers to an element in the structure
+		# Checks the maximum level of nesting so that any n-vector {v1, v2...vn} with 0 <= vm < length(m) 
+		# correctly refers to an element in the structure
 		def count_dimensions array
 			calculate_dimensions(array).length
 		end
 
-		# Return an array of lengths for a n-array
+		# Returns an array of lengths for a n-array
+		#
+		# Each dimension in a n-array has a maximum size
 		def calculate_dimensions array
 			_count(array).take_while { |e| e >= 0 }
 		end
+
 
 		# Check whether the argument is a valid dimension
 		#
@@ -132,23 +149,29 @@ class NArray < Array
 
 		private
 			def _count array, n = [], d = 0
-				unless array.is_a? Array # if not an array, set the dimension as beeing incoherent
+				unless array.is_a? Array or array.is_a? NArray # if not an array, set the dimension as beeing incoherent
 					n[d] = -1
 					return n # and abort
 				end
 
-				# if length <= depth it means this dimension hasn't been explored yet, so we set it at the first value we encounter
+				# if length <= depth it means this dimension hasn't been explored yet, 
+				# so we set it at the first value we encounter
 				n << array.length if n.length <= d
 
-				if array.length != n[d] #or n[d] < 0  # the second part should never be executed since array.length >= 0 (if n[d] < 0 then the first test automatically fails)
+				if array.length != n[d] #or n[d] < 0  # the second part should never 
+													  # be executed since array.length >= 0 (
+													  # if n[d] < 0 then the first test automatically fails)
 					# The dimension is in an incoherent state, abort
 					n[d] = -1
 					return n
 				end
 
-				# At this point the array is still in a coherent state, we just need to check sub elements unless we already know that we can't proceed further because of previous results
+				# At this point the array is still in a coherent state, 
+				# we just need to check sub elements unless we already know 
+				# that we can't proceed further because of previous results
 				array.each do |e|
-					if n.length > d + 1 and n[d + 1] < 0 # In case the next element has already been decided to be incoherent
+					if n.length > d + 1 and n[d + 1] < 0 # In case the next element has 
+														 # already been decided to be incoherent
 						return n # Abort
 					end
 					_count e, n, d + 1
