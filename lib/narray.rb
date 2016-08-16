@@ -61,8 +61,11 @@ class NArray < Array
 		dimensions == 1 ? [length] : [length, *self[0].lengths]
 	end
 
+	# Returns the length of the dimension given as parameter
+	#
+	# Starts at 0
 	def length d = 0
-		raise "Expecting positive Integer < #{dimensions}, got #{d}" unless d < dimensions
+		raise "Expecting positive Integer < #{dimensions}, got #{d}" unless d < dimensions and d >= 0
 		d == 0 ? super() : self[0].length(d - 1)
 	end
 
@@ -85,9 +88,10 @@ class NArray < Array
 
 	# Returns the total number of elements in the n-array
 	def size
-		lengths.reduce(&:+)
+		lengths.reduce(&:*)
 	end
 
+	# Iterate over the elements of the n-array applying the given block to each element
 	def each &blck
 		if dimensions > 1
 			super() do |e|
@@ -98,6 +102,8 @@ class NArray < Array
 		end
 	end
 
+	# Iterate over the elements of the n-array apply the given bloc and collect 
+	# the results into a nested collection of arrays identical to the structure of the caller
 	def map &blck
 		if dimensions > 1
 			super() do |e|
@@ -107,6 +113,7 @@ class NArray < Array
 			super(&blck)
 		end
 	end
+	# See #map
 	def collect
 		map
 	end
@@ -117,12 +124,13 @@ class NArray < Array
 		# Checks the maximum level of nesting so that any n-vector {v1, v2...vn} with 0 <= vm < length(m) 
 		# correctly refers to an element in the structure
 		def count_dimensions array
-			calculate_dimensions(array).length
+			array.class == NArray ? array.dimensions : calculate_dimensions(array).length
 		end
 
-		# Returns an array of lengths for a n-array
+		# Returns an array of lengths for an array (only works with Array, don't ask me why)
 		#
-		# Each dimension in a n-array has a maximum size
+		# Each dimension in a n-array has a maximum size, those are collected and ordered into an array,
+		# the first being the top array, and the last the deepest group
 		def calculate_dimensions array
 			_count(array).take_while { |e| e >= 0 }
 		end
@@ -155,7 +163,8 @@ class NArray < Array
 				end
 
 				# if length <= depth it means this dimension hasn't been explored yet, 
-				# so we set it at the first value we encounter
+				# so we set it at the first value we encounter, which will not change
+				# if the array is well formed
 				n << array.length if n.length <= d
 
 				if array.length != n[d] #or n[d] < 0  # the second part should never 

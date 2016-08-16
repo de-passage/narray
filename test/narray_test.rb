@@ -102,5 +102,26 @@ class TestNArray < MiniTest::Test
 		assert_equal 2, @d2[1,1]
 	end
 
+	def test_length_should_return_the_right_dimensions
+		assert_equal 2, @d3.length
+		assert_equal 2, @d3.length(1)
+		assert_equal 2, @d3.length(2)
+		assert_equal 2, @d2.length
+		assert_equal 2, @d2.length(1)
+		assert_equal 4, NArray[[[[1,2,3,4]]],[[[9,8,7,6]]]].length(3)
+	end
+
+	def test_lengths_should_return_an_array_with_the_right_lengths
+		assert_equal [2,2,2], @d3.lengths
+		assert_equal [2,2], @d2.lengths
+		assert_equal [3,2,2,1], NArray[[[[nil],[nil]],[[nil],[nil]]],
+									 [[[nil],[nil]],[[nil],[nil]]],
+									 [[[nil],[nil]],[[nil],[nil]]]].lengths
+	end
+
+	def test_size_should_return_the_total_number_of_elements
+		assert_equal 8, @d3.size
+		assert_equal 4, @d3.size
+	end
 end
 
