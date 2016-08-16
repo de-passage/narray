@@ -75,6 +75,29 @@ class NArray < Array
 		pos.length == 1 ? super(*pos, v) : self[pos[0]][*pos.drop(1)] = v
 	end
 
+	def each &blck
+		if dimensions > 1
+			super() do |e|
+				e.each(&blck)
+			end
+		else
+			super(&blck)
+		end
+	end
+
+	def map &blck
+		if dimensions > 1
+			super() do |e|
+				e.map(&blck)
+			end
+		else
+			super(&blck)
+		end
+	end
+	def collect
+		map
+	end
+
 	class << self
 		# Returns the number of dimensions that can be generated from the argument while keeping the array well-formed
 		#
