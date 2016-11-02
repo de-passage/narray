@@ -1,6 +1,6 @@
 require "minitest/autorun"
 require "minitest/spec"
-require_relative "../lib/narray"
+require_relative "../lib/n-array"
 
 class TestNArray < MiniTest::Test
 	def setup
